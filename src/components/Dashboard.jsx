@@ -69,23 +69,56 @@
 
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { logoutUser, getCurrentUser } from "../utils/auth";
+import { logoutUser, /*getCurrentUser*/ } from "../utils/auth";
 import DashboardLayout from "./dashboard/DashboardLayout";
 import AppointmentSummary from "./dashboard/AppointmentSummary";
 import DailyStats from "./dashboard/DailyStats";
+
+//-- with backend ---------------------------------------------------------
+import { getProfile } from "../utils/api"; // Import the API function
+//-------------------------------------------------------------------------
 
 const Dashboard = ({ setAuth }) => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true); // ✅ Add loading state
 
-  useEffect(() => {
-    const currentUser = getCurrentUser();
-    //console.log("[DEBUG] Current user data:", currentUser);
-    setUser(currentUser);
-    setLoading(false); // ✅ Mark loading as false when user is set
-  }, []);
+  // handler for testing without backend
+  // useEffect(() => {
+  //   const currentUser = getCurrentUser();
+  //   //console.log("[DEBUG] Current user data:", currentUser);
+  //   setUser(currentUser);
+  //   setLoading(false); // ✅ Mark loading as false when user is set
+  // }, []);
 
+  //-- with backend ---------------------------------------------------------
+  
+   // Fetch updated user data from the backend
+   const fetchUserData = async () => {
+    try {
+      const token = localStorage.getItem("auth_token");
+      console.log("🔍 Token found:", token);
+      if (!token) {
+        throw new Error("No auth token found");
+      }
+      const data = await getProfile(token);
+      setUser(data);
+      localStorage.setItem("user_data", JSON.stringify(data));
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+      // If token is missing or fetching fails, force logout:
+      //logoutUser();
+      //setAuth(false);
+      //navigate("/login");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUserData();
+  }, []);
+  //-------------------------------------------------------------------------
   const handleLogout = () => {
     //console.log("[DEBUG] Logging out...");
     logoutUser();
@@ -108,7 +141,7 @@ const Dashboard = ({ setAuth }) => {
             </div>
             <div className="flex items-center space-x-4">
               {user ? (
-                <span className="text-gray-700">Welcome, {user.name}!</span>
+                <span className="text-gray-700">Welcome, {user.username}!</span>
               ) : (
                 <span className="text-gray-700">Error loading user</span>
               )}
@@ -126,7 +159,7 @@ const Dashboard = ({ setAuth }) => {
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <DashboardLayout>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">Welcome, {user?.name || "Guest"}!</h1>
+        <h1 className="text-2xl font-bold">Welcome, {user?.username || "Guest"}!</h1>
         <p className="text-gray-600">Manage your appointments and view daily stats below.</p>
       </div>
 

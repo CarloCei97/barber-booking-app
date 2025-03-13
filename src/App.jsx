@@ -1,3 +1,4 @@
+// src/App.jsx
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LoginForm from './components/auth/LoginForm';
@@ -10,16 +11,16 @@ import Reports from "./pages/Reports";
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { isAuthenticated } from './utils/auth';
 
-
 function App() {
-  const [auth, setAuth] = useState(false); // ✅ Set the default value of the `false`
+  // Set initial state to null so we can show a loading indicator until auth is determined
+  const [auth, setAuth] = useState(null);
 
   useEffect(() => {
-    //console.log("[DEBUG] Checking initial authentication...");
-    setAuth(isAuthenticated()); // ✅ Set `auth` before rendering Routes
+    // Check initial authentication status
+    setAuth(isAuthenticated());
 
+    // Listen for auth changes
     const handleAuthChange = () => {
-      //console.log("[DEBUG] Auth change detected! Updating state...");
       setAuth(isAuthenticated());
     };
 
@@ -30,10 +31,9 @@ function App() {
     };
   }, []);
 
-  // ✅ Prevent routing until `auth` is determined (null check)
+  // Show a loading state while auth status is being determined
   if (auth === null) {
-    //console.log("[DEBUG] Waiting for authentication state...");
-    return <div>Loading...</div>; // Or a custom loading spinner
+    return <div>Loading...</div>;
   }
 
   return (
@@ -42,19 +42,37 @@ function App() {
         <Routes>
           <Route path="/login" element={<LoginForm setAuth={setAuth} />} />
           <Route path="/register" element={<RegisterForm />} />
-          <Route path="/calendar" element={<Calendar />} />
-          <Route path="/services" element={<Services />} />  
-          <Route path="/Clients" element={<Clients />} />  
-          <Route path="/Reports" element={<Reports />} />  
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute isAuthenticated={auth}>
-                <Dashboard setAuth={setAuth} />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/calendar" element={
+            <ProtectedRoute isAuthenticated={auth}>
+              <Calendar />
+            </ProtectedRoute>
+          } />
+          <Route path="/services" element={
+            <ProtectedRoute isAuthenticated={auth}>
+              <Services />
+            </ProtectedRoute>
+          } />
+          <Route path="/clients" element={
+            <ProtectedRoute isAuthenticated={auth}>
+              <Clients />
+            </ProtectedRoute>
+          } />
+          <Route path="/reports" element={
+            <ProtectedRoute isAuthenticated={auth}>
+              <Reports />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard" element={
+            <ProtectedRoute isAuthenticated={auth}>
+              <Dashboard setAuth={setAuth} />
+            </ProtectedRoute>
+          } />
+          {/* Redirect root to dashboard if authenticated */}
+          <Route path="/" element={
+            auth ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
+          } />
+          {/* Fallback route */}
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </div>
     </Router>

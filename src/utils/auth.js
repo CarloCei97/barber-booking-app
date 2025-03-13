@@ -53,10 +53,11 @@ export const loginUser = (credentials) => {
 
     const token = `token_${user.id}`;
     localStorage.setItem(TOKEN_KEY, token);
+    console.log("Token set:", localStorage.getItem(TOKEN_KEY)); // Debug log
     localStorage.setItem(USER_KEY, JSON.stringify({
       id: user.id,
       email: user.email,
-      name: user.name
+      name: user.username
     }));
 
     window.dispatchEvent(new Event("authChange")); // 🔄 Notify app of auth change
@@ -76,19 +77,19 @@ export const logoutUser = () => {
   window.location.href = "/login"; // ✅ Force redirect to login
 };
 
-/* export const isAuthenticated = () => {
+  export const isAuthenticated = () => {
   const token = localStorage.getItem("auth_token");
-  console.log("[DEBUG] Checking auth token:", token);
-  console.log("[DEBUG] isAuthenticated() returns:", token !== null && token.startsWith("token_"));
+  //console.log("[DEBUG] Checking auth token:", token);
+  //console.log("[DEBUG] isAuthenticated() returns:", token !== null && token.startsWith("token_"));
   return token !== null && token.startsWith("token_");
-}; */
+};
 
-export const isAuthenticated = () => {
+/*export const isAuthenticated = () => {
   //console.log("[DEBUG] Forcing authentication to TRUE");
   return true; // ✅ Temporarily force authentication
 };
 window.isAuthenticated = isAuthenticated;
-
+*/
 export const getCurrentUser = () => {
   try {
     const userStr = localStorage.getItem(USER_KEY);
