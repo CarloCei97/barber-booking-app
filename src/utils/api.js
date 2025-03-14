@@ -38,6 +38,7 @@ import axios from 'axios';
 
 const BASE_URL = 'http://localhost:3001'; // Your backend runs on port 3001
 
+//------------ profile data ------------------------------------------------
 export const register = async (userData) => {
   const response = await axios.post(`${BASE_URL}/auth/register`, userData);
   return response.data;
@@ -59,6 +60,40 @@ export const logout = async (token) => {
 
 export const getProfile = async (token) => {
   const response = await axios.get(`${BASE_URL}/auth/profile`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+};
+
+//------------ appointments data ------------------------------------------------
+// Create a new appointment
+export const createAppointment = async (appointmentData, token) => {
+  const response = await axios.post(`${BASE_URL}/appointments`, appointmentData, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+};
+
+// Update an appointment
+export const updateAppointment = async (appointmentId, updateData, token) => {
+  const response = await axios.put(`${BASE_URL}/appointments/${appointmentId}`, updateData, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+};
+
+// Delete an appointment
+export const deleteAppointment = async (appointmentId, token) => {
+  const response = await axios.delete(`${BASE_URL}/appointments/${appointmentId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+};
+
+// Get appointments for the authenticated user (optionally you can pass a date parameter)
+export const getAppointments = async (token, date = null) => {
+  const url = date ? `${BASE_URL}/appointments?date=${date}` : `${BASE_URL}/appointments`;
+  const response = await axios.get(url, {
     headers: { Authorization: `Bearer ${token}` },
   });
   return response.data;

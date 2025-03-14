@@ -1,30 +1,181 @@
+// // src/pages/Calendar.jsx
+// import React, { useState, useEffect } from 'react';
+// import DashboardLayout from '../components/dashboard/DashboardLayout';
+// import CalendarGrid from '../components/calendar/CalendarGrid';
+// import AppointmentModal from '../components/calendar/AppointmentModal';
+// import { getAppointments, createAppointment, updateAppointment, deleteAppointment } from '../utils/api';
+
+// const Calendar = () => {
+//   const [currentDate, setCurrentDate] = useState(new Date());
+//   const [selectedDate, setSelectedDate] = useState(null);
+//   const [showModal, setShowModal] = useState(false);
+//   const [modalView, setModalView] = useState("list"); // "list", "create", or "edit"
+//   const [appointments, setAppointments] = useState([]);
+//   const [editingAppointment, setEditingAppointment] = useState(null);
+
+//   const monthNames = ["January", "February", "March", "April", "May", "June",
+//     "July", "August", "September", "October", "November", "December"];
+//   const currentMonthName = monthNames[currentDate.getMonth()];
+//   const currentYear = currentDate.getFullYear();
+
+//   // Assume token is stored in localStorage under "auth_token"
+//   const token = localStorage.getItem("auth_token");
+
+//   // Load appointments for the authenticated user (for the current month or a specific day)
+//   const fetchAppointments = async () => {
+//     try {
+//       const data = await getAppointments(token);
+//       setAppointments(data);
+//     } catch (error) {
+//       console.error("Error fetching appointments:", error);
+//     }
+//   };
+
+//   useEffect(() => {
+//     fetchAppointments();
+//   }, [currentDate]);
+
+//   const previousMonth = () => {
+//     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1));
+//   };
+
+//   const nextMonth = () => {
+//     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1));
+//   };
+
+//   const handleDayClick = (day) => {
+//     const clickedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+//     setSelectedDate(clickedDate);
+//     setModalView("list");
+//     setShowModal(true);
+//     setEditingAppointment(null);
+//   };
+
+//   // Handle appointment submission for both creating and editing
+//   const handleAppointmentSubmit = async (appointmentData) => {
+//     try {
+//       if (modalView === "create") {
+//         // Call the backend to create an appointment
+//         const newAppointment = await createAppointment({
+//           ...appointmentData,
+//           date: selectedDate, // ensure the backend receives a valid date
+//         }, token);
+//         setAppointments([...appointments, newAppointment]);
+//         alert('Appointment booked successfully!');
+//       } else if (modalView === "edit" && editingAppointment) {
+//         // Call the backend to update the appointment
+//         const updated = await updateAppointment(editingAppointment.id, appointmentData, token);
+//         setAppointments(appointments.map(appt => appt.id === editingAppointment.id ? updated : appt));
+//         alert('Appointment updated successfully!');
+//         setEditingAppointment(null);
+//       }
+//     } catch (error) {
+//       console.error("Error saving appointment:", error);
+//       alert('Error saving appointment');
+//     } finally {
+//       setModalView("list");
+//       setShowModal(false);
+//       // Optionally refresh appointments
+//       fetchAppointments();
+//     }
+//   };
+
+//   const handleDeleteAppointment = async (appointmentId) => {
+//     if (window.confirm("Are you sure you want to delete this appointment?")) {
+//       try {
+//         await deleteAppointment(appointmentId, token);
+//         setAppointments(appointments.filter(appt => appt.id !== appointmentId));
+//         alert('Appointment deleted successfully');
+//       } catch (error) {
+//         console.error("Error deleting appointment:", error);
+//         alert('Error deleting appointment');
+//       }
+//     }
+//   };
+
+//   const handleEditAppointment = (appointment) => {
+//     setEditingAppointment(appointment);
+//     setModalView("edit");
+//     setShowModal(true);
+//   };
+
+//   return (
+//     <DashboardLayout>
+//       <div className="container mx-auto p-6">
+//         <div className="bg-white rounded-lg shadow">
+//           {/* Calendar Header */}
+//           <div className="flex items-center justify-between p-4 border-b">
+//             <h2 className="text-xl font-semibold">
+//               {currentMonthName} {currentYear}
+//             </h2>
+//             <div className="flex space-x-2">
+//               <button onClick={previousMonth} className="px-3 py-1 bg-gray-100 rounded hover:bg-gray-200">
+//                 ←
+//               </button>
+//               <button onClick={nextMonth} className="px-3 py-1 bg-gray-100 rounded hover:bg-gray-200">
+//                 →
+//               </button>
+//             </div>
+//           </div>
+
+//           {/* Calendar Grid */}
+//           <CalendarGrid 
+//             currentDate={currentDate} 
+//             appointments={appointments} 
+//             onDayClick={handleDayClick}
+//           />
+//         </div>
+
+//         {/* Appointment Modal Popup */}
+//         {showModal && selectedDate && (
+//           <AppointmentModal
+//             selectedDate={selectedDate}
+//             modalView={modalView === "edit" ? { mode: "edit", editData: editingAppointment } : modalView}
+//             appointments={appointments}
+//             onClose={(view = "list") => {
+//               setModalView(view);
+//               setShowModal(false);
+//             }}
+//             onNew={() => setModalView("create")}
+//             onSubmit={handleAppointmentSubmit}
+//             onEdit={handleEditAppointment}
+//             onDelete={handleDeleteAppointment}
+//             editingAppointment={editingAppointment}
+//           />
+//         )}
+//       </div>
+//     </DashboardLayout>
+//   );
+// };
+
+// export default Calendar;
+
 // src/pages/Calendar.jsx
 import React, { useState } from 'react';
 import DashboardLayout from '../components/dashboard/DashboardLayout';
-import AppointmentForm from '../components/calendar/AppointmentForm';
+import CalendarGrid from '../components/calendar/CalendarGrid';
+import AppointmentModal from '../components/calendar/AppointmentModal';
+import { createAppointment, updateAppointment, deleteAppointment } from '../utils/api';
+import useAppointments from '../hooks/useAppointments';
 
 const Calendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
-  const [showAppointmentForm, setShowAppointmentForm] = useState(false);
-  const [appointments, setAppointments] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [modalView, setModalView] = useState("list"); // "list", "create", or "edit"
+  const [editingAppointment, setEditingAppointment] = useState(null);
 
-  // Get the first day of the month
-  const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-  const startingDay = firstDayOfMonth.getDay();
-  
-  // Get the last day of the month
-  const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
-
-  // Get month name
   const monthNames = ["January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
-  ];
-  
+    "July", "August", "September", "October", "November", "December"];
   const currentMonthName = monthNames[currentDate.getMonth()];
   const currentYear = currentDate.getFullYear();
 
-  // Navigation functions
+  // Assume token is stored in localStorage under "auth_token"
+  const token = localStorage.getItem("auth_token");
+
+  // Use custom hook to fetch appointments
+  const { appointments, loading, error, refreshAppointments } = useAppointments(currentDate, token);
+
   const previousMonth = () => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1));
   };
@@ -33,71 +184,59 @@ const Calendar = () => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1));
   };
 
-  // Handle appointment booking
-  const handleDateClick = (day) => {
+  const handleDayClick = (day) => {
     const clickedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
     setSelectedDate(clickedDate);
-    setShowAppointmentForm(true);
+    setModalView("list");
+    setShowModal(true);
+    setEditingAppointment(null);
   };
 
-  const handleAppointmentSubmit = (appointmentData) => {
-    setAppointments([...appointments, appointmentData]);
-    setShowAppointmentForm(false);
-    // Show success message
-    alert('Appointment booked successfully!');
-  };
-
-  // Get appointments for a specific day
-  const getAppointmentsForDay = (day) => {
-    return appointments.filter(appointment => {
-      const appointmentDate = new Date(appointment.date);
-      return (
-        appointmentDate.getDate() === day &&
-        appointmentDate.getMonth() === currentDate.getMonth() &&
-        appointmentDate.getFullYear() === currentDate.getFullYear()
-      );
-    });
-  };
-
-  // Create calendar grid
-  const createCalendarGrid = () => {
-    const totalDays = [];
-    const today = new Date();
-
-    // Add empty cells for days before the first of the month
-    for (let i = 0; i < startingDay; i++) {
-      totalDays.push(<div key={`empty-${i}`} className="p-4 border border-gray-200"></div>);
+  // Handle appointment submission for both creating and editing
+  const handleAppointmentSubmit = async (appointmentData) => {
+    try {
+      if (modalView === "create") {
+        // Call the backend to create an appointment
+        await createAppointment({
+          ...appointmentData,
+          date: selectedDate, // ensure the backend receives a valid date
+        }, token);
+        alert('Appointment booked successfully!');
+      } else if (modalView === "edit" && editingAppointment) {
+        // Call the backend to update the appointment
+        await updateAppointment(editingAppointment.id, appointmentData, token);
+        alert('Appointment updated successfully!');
+        setEditingAppointment(null);
+      }
+    } catch (error) {
+      console.error("Error saving appointment:", error);
+      alert('Error saving appointment');
+    } finally {
+      setModalView("list");
+      setShowModal(false);
+      // Refresh appointments to get the updated data
+      refreshAppointments();
     }
+  };
 
-    // Add the actual days
-    for (let day = 1; day <= lastDayOfMonth; day++) {
-      const isToday = 
-        day === today.getDate() && 
-        currentDate.getMonth() === today.getMonth() && 
-        currentDate.getFullYear() === today.getFullYear();
-
-      const dayAppointments = getAppointmentsForDay(day);
-
-      totalDays.push(
-        <div 
-          key={day} 
-          className={`p-4 border border-gray-200 cursor-pointer hover:bg-blue-50 transition-colors
-            ${isToday ? 'bg-blue-100 font-bold' : ''}`}
-          onClick={() => handleDateClick(day)}
-        >
-          <div className="flex flex-col min-h-[80px]">
-            <span className="mb-1">{day}</span>
-            {dayAppointments.length > 0 && (
-              <div className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                {dayAppointments.length} appointment{dayAppointments.length !== 1 ? 's' : ''}
-              </div>
-            )}
-          </div>
-        </div>
-      );
+  const handleDeleteAppointment = async (appointmentId) => {
+    if (window.confirm("Are you sure you want to delete this appointment?")) {
+      try {
+        await deleteAppointment(appointmentId, token);
+        alert('Appointment deleted successfully');
+        // Refresh appointments to get the updated data
+        refreshAppointments();
+      } catch (error) {
+        console.error("Error deleting appointment:", error);
+        alert('Error deleting appointment');
+      }
     }
+  };
 
-    return totalDays;
+  const handleEditAppointment = (appointment) => {
+    setEditingAppointment(appointment);
+    setModalView("edit");
+    setShowModal(true);
   };
 
   return (
@@ -110,41 +249,44 @@ const Calendar = () => {
               {currentMonthName} {currentYear}
             </h2>
             <div className="flex space-x-2">
-              <button
-                onClick={previousMonth}
-                className="px-3 py-1 bg-gray-100 rounded hover:bg-gray-200"
-              >
+              <button onClick={previousMonth} className="px-3 py-1 bg-gray-100 rounded hover:bg-gray-200">
                 ←
               </button>
-              <button
-                onClick={nextMonth}
-                className="px-3 py-1 bg-gray-100 rounded hover:bg-gray-200"
-              >
+              <button onClick={nextMonth} className="px-3 py-1 bg-gray-100 rounded hover:bg-gray-200">
                 →
               </button>
             </div>
           </div>
 
+          {/* Display loading/error messages */}
+          {loading && <div className="p-4">Loading appointments...</div>}
+          {error && <div className="p-4 text-red-500">Error: {error}</div>}
+
           {/* Calendar Grid */}
-          <div className="grid grid-cols-7 gap-0">
-            {/* Weekday headers */}
-            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-              <div key={day} className="p-4 text-center font-semibold bg-gray-50">
-                {day}
-              </div>
-            ))}
-            
-            {/* Calendar days */}
-            {createCalendarGrid()}
-          </div>
+          {!loading && !error && (
+            <CalendarGrid 
+              currentDate={currentDate} 
+              appointments={appointments} 
+              onDayClick={handleDayClick}
+            />
+          )}
         </div>
 
-        {/* Appointment Form Modal */}
-        {showAppointmentForm && selectedDate && (
-          <AppointmentForm
+        {/* Appointment Modal Popup */}
+        {showModal && selectedDate && (
+          <AppointmentModal
             selectedDate={selectedDate}
+            modalView={modalView === "edit" ? { mode: "edit", editData: editingAppointment } : modalView}
+            appointments={appointments}
+            onClose={(view = "list") => {
+              setModalView(view);
+              setShowModal(false);
+            }}
+            onNew={() => setModalView("create")}
             onSubmit={handleAppointmentSubmit}
-            onClose={() => setShowAppointmentForm(false)}
+            onEdit={handleEditAppointment}
+            onDelete={handleDeleteAppointment}
+            editingAppointment={editingAppointment}
           />
         )}
       </div>
@@ -153,3 +295,4 @@ const Calendar = () => {
 };
 
 export default Calendar;
+
