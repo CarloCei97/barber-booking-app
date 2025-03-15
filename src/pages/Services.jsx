@@ -1,54 +1,3 @@
-// // src/pages/Services.jsx
-// import React, { useState } from 'react';
-// import DashboardLayout from '../components/dashboard/DashboardLayout';
-// import ServiceList from '../components/services/ServiceList';
-// import ServiceForm from '../components/services/ServiceForm';
-
-// const Services = () => {
-//   const [showForm, setShowForm] = useState(false);
-//   const [editingService, setEditingService] = useState(null);
-
-//   const handleAddService = (serviceData) => {
-//     // TODO: Call API to add service
-//     setShowForm(false);
-//   };
-
-//   const handleEditService = (serviceData) => {
-//     // TODO: Call API to update service
-//     setShowForm(false);
-//     setEditingService(null);
-//   };
-
-//   return (
-//     <DashboardLayout>
-//       <div className="space-y-6">
-//         <div className="flex justify-between items-center">
-//           <h1 className="text-2xl font-semibold text-gray-900">Services</h1>
-//           <button
-//             onClick={() => setShowForm(true)}
-//             className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
-//           >
-//             Add Service
-//           </button>
-//         </div>
-        
-//         {showForm && (
-//           <div className="bg-white shadow rounded-lg p-6">
-//             <ServiceForm
-//               onSubmit={editingService ? handleEditService : handleAddService}
-//               initialData={editingService}
-//             />
-//           </div>
-//         )}
-        
-//         <ServiceList />
-//       </div>
-//     </DashboardLayout>
-//   );
-// };
-
-// export default Services;
-
 // src/pages/Services.jsx
 import React, { useState } from 'react';
 import DashboardLayout from '../components/dashboard/DashboardLayout';
@@ -72,7 +21,7 @@ const Services = () => {
     }
   };
 
-  // Handle editing a service (delete + create new)
+  // Handle editing a service (direct update)
   const handleEditService = async (serviceData) => {
     try {
       await updateServiceData(editingService.id, serviceData);
@@ -100,7 +49,7 @@ const Services = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-semibold text-gray-900">Services</h1>
           <button
@@ -114,15 +63,6 @@ const Services = () => {
           </button>
         </div>
 
-        {showForm && (
-          <div className="bg-white shadow rounded-lg p-6">
-            <ServiceForm
-              onSubmit={editingService ? handleEditService : handleAddService}
-              initialData={editingService}
-            />
-          </div>
-        )}
-
         {loading ? (
           <div>Loading services...</div>
         ) : error ? (
@@ -135,6 +75,24 @@ const Services = () => {
           />
         )}
       </div>
+
+      {/* Modal Popup for Service Form */}
+      {showForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow p-6 w-full max-w-md">
+            <ServiceForm
+              onSubmit={editingService ? handleEditService : handleAddService}
+              initialData={editingService}
+            />
+            <button
+              onClick={() => setShowForm(false)}
+              className="mt-4 w-full bg-gray-500 hover:bg-gray-700 text-white py-2 px-4 rounded"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 };
