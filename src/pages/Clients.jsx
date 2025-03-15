@@ -9,7 +9,8 @@ const Clients = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      {/* Responsive container with proper horizontal padding */}
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         <div className="border-b border-gray-200">
           <nav className="-mb-px flex space-x-8">
             <button
