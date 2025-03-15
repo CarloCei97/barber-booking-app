@@ -10,7 +10,13 @@ const ServiceForm = ({ onSubmit, initialData = null }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    // Convert duration and price to numbers
+    const preparedData = {
+      ...formData,
+      duration: Number(formData.duration),
+      price: Number(formData.price)
+    };
+    onSubmit(preparedData);
   };
 
   const handleChange = (e) => {

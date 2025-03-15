@@ -1,70 +1,35 @@
-// // src/components/dashboard/AppointmentSummary.jsx
-// import React from 'react';
-
-// const AppointmentSummary = () => {
-//   const appointments = [
-//     {
-//       id: 1,
-//       clientName: 'John Doe',
-//       service: 'Haircut',
-//       time: '10:00 AM',
-//       duration: '30 min'
-//     },
-//     // More appointments would be fetched from the backend
-//   ];
-
-//   return (
-//     <div className="bg-white shadow rounded-lg p-6">
-//       <h2 className="text-lg font-medium mb-4">Upcoming Appointments</h2>
-//       <div className="space-y-4">
-//         {appointments.map((appointment) => (
-//           <div
-//             key={appointment.id}
-//             className="border-l-4 border-blue-500 bg-blue-50 p-4 rounded"
-//           >
-//             <div className="flex justify-between items-center">
-//               <div>
-//                 <p className="font-medium">{appointment.clientName}</p>
-//                 <p className="text-sm text-gray-600">{appointment.service}</p>
-//               </div>
-//               <div className="text-right">
-//                 <p className="font-medium">{appointment.time}</p>
-//                 <p className="text-sm text-gray-600">{appointment.duration}</p>
-//               </div>
-//             </div>
-//           </div>
-//         ))}
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default AppointmentSummary;
-
-
 // src/components/dashboard/AppointmentSummary.jsx
 import React, { useMemo } from 'react';
 import useAppointments from '../../hooks/useAppointments';
+import SummaryCard from './SummaryCard';
 
 const AppointmentSummary = () => {
   const token = localStorage.getItem('auth_token');
-  // Use useMemo to ensure the date value is stable and does not trigger re-fetching continuously.
-  const currentDate = useMemo(() => new Date(), []);
+  // Use useMemo to create a stable "today" value so that it doesn't trigger repeated fetches.
+  const today = useMemo(() => new Date(), []);
   
-  const { appointments, loading, error } = useAppointments(currentDate, token);
+  // Fetch appointments using the custom hook.
+  const { appointments, loading, error } = useAppointments(today, token);
 
   if (loading) return <div>Loading appointments...</div>;
   if (error) return <div>Error: {error}</div>;
 
-  // Filter for upcoming appointments (using startTime)
   const now = new Date();
-  const upcomingAppointments = appointments.filter(app => new Date(app.startTime) >= now);
+  // Filter for appointments scheduled today with a startTime later than now.
+  const todaysUpcomingAppointments = appointments.filter((appointment) => {
+    const startTime = new Date(appointment.startTime);
+    return (
+      startTime.getDate() === now.getDate() &&
+      startTime.getMonth() === now.getMonth() &&
+      startTime.getFullYear() === now.getFullYear() &&
+      startTime > now
+    );
+  });
 
   return (
-    <div className="bg-white shadow rounded-lg p-6">
-      <h2 className="text-lg font-medium mb-4">Upcoming Appointments</h2>
-      <div className="space-y-4">
-        {upcomingAppointments.map((appointment) => {
+    <SummaryCard title="Today's Upcoming Appointments">
+      {todaysUpcomingAppointments.length > 0 ? (
+        todaysUpcomingAppointments.map((appointment) => {
           const clientName = appointment.client ? appointment.client.username : appointment.clientName;
           const serviceName = appointment.service?.name || '';
           const time = new Date(appointment.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -87,9 +52,11 @@ const AppointmentSummary = () => {
               </div>
             </div>
           );
-        })}
-      </div>
-    </div>
+        })
+      ) : (
+        <div>No more upcoming appointments for today.</div>
+      )}
+    </SummaryCard>
   );
 };
 

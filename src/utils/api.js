@@ -98,3 +98,37 @@ export const getAppointments = async (token, date = null) => {
   });
   return response.data;
 };
+
+//----------------- Service data -----------------------------------------------------
+// Create a new service
+export const createService = async (serviceData, token) => {
+  const response = await axios.post(`${BASE_URL}/services`, serviceData, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+};
+
+// Delete a service
+export const deleteService = async (serviceId, token) => {
+  const response = await axios.delete(`${BASE_URL}/services/${serviceId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+};
+
+// Edit a service 
+export const editService = async (serviceId, serviceData, token) => {
+  // Delete the existing service
+  await deleteService(serviceId, token);
+  // Create a new service with the updated data
+  const newService = await createService(serviceData, token);
+  return newService;
+};
+
+// Get services for the authenticated user
+export const getServices = async (token) => {
+  const response = await axios.get(`${BASE_URL}/services`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+};
