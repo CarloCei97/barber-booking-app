@@ -36,7 +36,7 @@
 // barber-booking-app/src/utils/api.js
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:3001'; // Your backend runs on port 3001
+const BASE_URL = 'https://backend-barber-booking-app.onrender.com'; // Your backend runs on port 3001
 
 //------------ profile data ------------------------------------------------
 export const register = async (userData) => {
